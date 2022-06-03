@@ -59,7 +59,7 @@ bool GameActive = false;
 vector <Object> objects;
 Object background("background.jpg");
 Object player("antikrip.png");
-Object background_menu("start_menu.webp");
+Object background_menu("start_menu.jpg");
 Object sun("sun.png");
 Object wall("tower.png"); 
 Object platform("creep.png");
@@ -91,7 +91,7 @@ void update(bool right, bool left, bool up) {
 	}
 	// прыжок
 	if (up) {
-		if ((objects[1].velocity.y > 540) || (objects[1].velocity.y > 489 && objects[1].velocity.y < 491) || (objects[1].velocity.y >440 && objects[1].velocity.y < 480)) {
+		if ((objects[1].velocity.y > 540) || (objects[1].velocity.y > 489 && objects[1].velocity.y < 491) || (objects[1].velocity.y >350 && objects[1].velocity.y < 370)) {
 			objects[1].velocity.y -= 300;
 			objects[1].Move(objects[1].velocity.x, objects[1].velocity.y - 300);
 		}
@@ -116,18 +116,16 @@ void game();
 
 void menu() {
 	RenderWindow window_menu(VideoMode(window_width, window_height), "SFML menu", Style::Titlebar);
-	Texture menuTexture1, menuTexture2, menuTexture3, aboutTexture, menuBackground;
+	Texture menuTexture1, menuTexture2, aboutTexture, menuBackground;
 	menuTexture1.loadFromFile("111.png");
-	menuTexture2.loadFromFile("222.png");
-	menuTexture3.loadFromFile("333.png");
+	menuTexture2.loadFromFile("333.png");
 	aboutTexture.loadFromFile("about.png");
-	menuBackground.loadFromFile("start_menu.png");
-	Sprite menu1(menuTexture1), menu2(menuTexture2), menu3(menuTexture3), about(aboutTexture), menuBg(menuBackground);
+	menuBackground.loadFromFile("start_menu.jpg");
+	Sprite menu1(menuTexture1), menu2(menuTexture2), about(aboutTexture), menuBg(menuBackground);
 	bool isMenu = 1;
 	int menuNum = 0;
 	menu1.setPosition(100, 30);
 	menu2.setPosition(100, 90);
-	menu3.setPosition(100, 150);
 	menuBg.setPosition(345, 0);
 	about.setPosition(200, 100);
 	Music music_theme;//создаем объект музыки
@@ -137,13 +135,12 @@ void menu() {
 	{
 		menu1.setColor(Color::White);
 		menu2.setColor(Color::White);
-		menu3.setColor(Color::White);
+		menu2.setColor(Color::White);
 		menuNum = 0;
 		window_menu.clear(Color(129, 181, 221));
 
 		if (IntRect(100, 30, 300, 50).contains(Mouse::getPosition(window_menu))) { menu1.setColor(Color::Blue); menuNum = 1; }
 		if (IntRect(100, 90, 300, 50).contains(Mouse::getPosition(window_menu))) { menu2.setColor(Color::Blue); menuNum = 2; }
-		if (IntRect(100, 150, 300, 50).contains(Mouse::getPosition(window_menu))) { menu3.setColor(Color::Blue); menuNum = 3; }
 
 		if (Mouse::isButtonPressed(Mouse::Left))
 		{
@@ -154,11 +151,6 @@ void menu() {
 				game();
 			}
 			if (menuNum == 2) {
-				window_menu.draw(about);
-				window_menu.display();
-				sleep(seconds(2));
-			}
-			if (menuNum == 3) {
 				window_menu.close();
 				isMenu = false;
 			}
@@ -168,7 +160,6 @@ void menu() {
 		window_menu.draw(menuBg);
 		window_menu.draw(menu1);
 		window_menu.draw(menu2);
-		window_menu.draw(menu3);
 
 		window_menu.display();
 	}
@@ -184,6 +175,10 @@ void game() {
 	hit_buffer.loadFromFile("hit.ogg");
 	Sound hit_sound;
 	hit_sound.setBuffer(hit_buffer);
+	SoundBuffer nohit_buffer;
+	nohit_buffer.loadFromFile("nohit.ogg");
+	Sound nohit_sound;
+	nohit_sound.setBuffer(nohit_buffer);
 	RenderWindow window_game(VideoMode(window_width, window_height), "SFML game", Style::Titlebar);
 	//Солнце
 	objects[3].Move(window_width / 2, sun.height / 2);
@@ -195,23 +190,23 @@ void game() {
 	//Персонаж
 	objects[1].setScale(4, 4);
 	objects[1].mass = 1;
-	objects[1].velocity.x = 300;
+	objects[1].velocity.x = 500;
 	objects[1].velocity.y = 550;
-	objects[1].Move(300, 550);
+	objects[1].Move(500, 550);
 	// Стена
-	objects[4].velocity.x = 100;
+	objects[4].velocity.x = 300;
 	objects[4].velocity.y = 550;
-	objects[4].Move(100, 550);
+	objects[4].Move(300, 550);
 
 	// Платформа
-	objects[5].velocity.x = 700;
-	objects[5].velocity.y = 650;
-	objects[5].Move(700, 650);
+	objects[5].velocity.x = 900;
+	objects[5].velocity.y = 550; 
+	objects[5].Move(900, 550);
 
 	// Хитпоинты стены
 	objects[6].velocity.x = objects[4].velocity.x;
-	objects[6].velocity.y = objects[4].velocity.y - 100;
-	objects[6].Move(objects[4].velocity.x, objects[4].velocity.y - 100);
+	objects[6].velocity.y = objects[4].velocity.y - 50;
+	objects[6].Move(objects[4].velocity.x, objects[4].velocity.y - 50);
 
 	// Хитпоинты игрока
 	objects[7].velocity.x = objects[1].velocity.x;
@@ -265,11 +260,13 @@ void game() {
 					up = true;
 				}
 				else if (event.key.code == Keyboard::E) {
-					difrnce = objects[1].velocity.x - objects[4].velocity.x - 100;
-					hit_sound.play();
-					if (objects[1].width == -128 && difrnce <= 20 && j != -10) {
+					difrnce = objects[1].velocity.x - objects[4].velocity.x - 170;
+					if (difrnce <= 50 && j != -10) {
 						hit_sound.play();
 						attack(difrnce, j);
+					}
+					if (difrnce > 50 || j == -10) {
+						nohit_sound.play();
 					}
 				}
 			}
@@ -297,7 +294,10 @@ void game() {
 		// коллизия стены
 		if (objects[1].image.getGlobalBounds().intersects(objects[4].image.getGlobalBounds())) {
 			if (objects[1].velocity.x > objects[4].velocity.x) {
-				objects[1].velocity.x = objects[4].velocity.x + objects[4].width + 34;
+				objects[1].velocity.x = objects[4].velocity.x + objects[4].width + 30;
+			}
+			if (objects[1].velocity.x < objects[4].velocity.x) {
+				objects[1].velocity.x = objects[4].velocity.x - objects[4].width - 30;
 			}
 		}
 
