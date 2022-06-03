@@ -126,7 +126,7 @@ void menu() {
 	int menuNum = 0;
 	menu1.setPosition(100, 30);
 	menu2.setPosition(100, 90);
-	menuBg.setPosition(345, 0);
+	menuBg.setPosition(0, 0);
 	about.setPosition(200, 100);
 	Music music_theme;//создаем объект музыки
 	music_theme.openFromFile("theme.ogg");//загружаем файл
@@ -175,10 +175,17 @@ void game() {
 	hit_buffer.loadFromFile("hit.ogg");
 	Sound hit_sound;
 	hit_sound.setBuffer(hit_buffer);
+
 	SoundBuffer nohit_buffer;
 	nohit_buffer.loadFromFile("nohit.ogg");
 	Sound nohit_sound;
 	nohit_sound.setBuffer(nohit_buffer);
+
+	SoundBuffer stun_buffer;
+	stun_buffer.loadFromFile("stun.ogg");
+	Sound stun_sound;
+	stun_sound.setBuffer(stun_buffer);
+
 	RenderWindow window_game(VideoMode(window_width, window_height), "SFML game", Style::Titlebar);
 	//Солнце
 	objects[3].Move(window_width / 2, sun.height / 2);
@@ -261,13 +268,17 @@ void game() {
 				}
 				else if (event.key.code == Keyboard::E) {
 					difrnce = objects[1].velocity.x - objects[4].velocity.x - 170;
+					if (difrnce > 50 || j == -10) {
+						nohit_sound.play();
+					}
+					if (j == 5) {
+						stun_sound.play();
+					}
 					if (difrnce <= 50 && j != -10) {
 						hit_sound.play();
 						attack(difrnce, j);
 					}
-					if (difrnce > 50 || j == -10) {
-						nohit_sound.play();
-					}
+					
 				}
 			}
 		}
@@ -290,6 +301,9 @@ void game() {
 		}
 		if (objects[1].velocity.x > window_width) {
 			objects[1].velocity.x = window_width - objects[1].width;
+		}
+		if (objects[1].velocity.y < 64) {
+			objects[1].velocity.y = 68;
 		}
 		// коллизия стены
 		if (objects[1].image.getGlobalBounds().intersects(objects[4].image.getGlobalBounds())) {
