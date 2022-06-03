@@ -57,25 +57,24 @@ int window_height = 720;
 bool GameActive = false;
 
 vector <Object> objects;
-Object background("background.jpg");
-Object player("antikrip.png");
-Object background_menu("start_menu.webp");
+Object background("background.png");
+Object player("use_characters_1.png"); // 128 * 252
+Object background_menu("start_menu.png");
 Object sun("sun.png");
-Object wall("tower.png"); 
-Object platform("creep.png");
+Object wall("wall.png"); // 68 * 300
+Object platform("platform.png"); // 220 * 160
 Object hitpoint_wall("1.png");
 Object hitpoint_player("playerhp.png");
 
 void update(bool right, bool left, bool up) {
 	// падение игрока
 	if (objects[1].velocity.y < 550) {
-		objects[1].velocity.y = objects[1].mass * (objects[1].velocity.y + 9.8 * 0.03);
-		objects[1].Move(objects[1].velocity.x, objects[1].mass * (objects[1].velocity.y + 9.8 * 0.03));
-		
+		objects[1].velocity.y = objects[1].mass * (objects[1].velocity.y + 9.8 * 0.05);
+		objects[1].Move(objects[1].velocity.x, objects[1].mass * (objects[1].velocity.y + 9.8 * 0.05));
 	}
 	// вправо
 	if (right && (objects[1].velocity.x < window_width - objects[1].width / 2 - 2)) {
-
+		
 		objects[1].setScale(4, 4);
 		objects[1].width = 128;
 		objects[1].velocity.x += 8;
@@ -83,33 +82,33 @@ void update(bool right, bool left, bool up) {
 	}
 	// влево
 	if (left && (objects[1].velocity.x > objects[1].width / 2 + 2)) {
-
+		
 		objects[1].setScale(-4, 4);
 		objects[1].width = -128;
 		objects[1].velocity.x -= 8;
 		objects[1].Move(objects[1].velocity.x - 5, objects[1].velocity.y);
 	}
-	// прыжок
+	// вверх
 	if (up) {
-		if ((objects[1].velocity.y > 540) || (objects[1].velocity.y > 489 && objects[1].velocity.y < 491) || (objects[1].velocity.y >440 && objects[1].velocity.y < 480)) {
-			objects[1].velocity.y -= 300;
-			objects[1].Move(objects[1].velocity.x, objects[1].velocity.y - 300);
+		if ((objects[1].velocity.y > 540) || (objects[1].velocity.y > 489 && objects[1].velocity.y < 491)) {
+			objects[1].velocity.y -= 175;
+			objects[1].Move(objects[1].velocity.x, objects[1].velocity.y - 175);
 		}
 	}
 	return;
 }
-void attack(double difrnce, int& j) {
-	j++;
-	if (j == 2) objects[6].setImage("2.png");
-	else if (j == 3) objects[6].setImage("3.png");
-	else if (j == 4) objects[6].setImage("4.png");
-	else if (j == 5) objects[6].setImage("5.png");
-	else {
-		objects[4].velocity.x = 0;
-		objects[4].velocity.y = 1000;
-		objects[4].Move(0, 1000);
-		j = -10;
-	}
+void attack(double difrnce, int &j) {
+		j++;
+		if (j == 2) objects[6].setImage("2.png");
+		else if (j == 3) objects[6].setImage("3.png");
+		else if (j == 4) objects[6].setImage("4.png");
+		else if (j == 5) objects[6].setImage("5.png");
+		else {
+			objects[4].velocity.x = 0;
+			objects[4].velocity.y = 1000;
+			objects[4].Move(0, 1000);
+			j = -10;
+		}
 	return;
 }
 void game();
@@ -204,19 +203,20 @@ void game() {
 	objects[4].Move(100, 550);
 
 	// Платформа
-	objects[5].velocity.x = 700;
+	objects[5].velocity.x = 500;
 	objects[5].velocity.y = 650;
-	objects[5].Move(700, 650);
+	objects[5].Move(500, 650);
+	objects[5].setScale(0.5, 0.5); // 110 * 80
 
 	// Хитпоинты стены
 	objects[6].velocity.x = objects[4].velocity.x;
-	objects[6].velocity.y = objects[4].velocity.y - 100;
-	objects[6].Move(objects[4].velocity.x, objects[4].velocity.y - 100);
+	objects[6].velocity.y = objects[4].velocity.y - 200;
+	objects[6].Move(objects[4].velocity.x, objects[4].velocity.y - 200);
 
 	// Хитпоинты игрока
 	objects[7].velocity.x = objects[1].velocity.x;
-	objects[7].velocity.y = objects[1].velocity.y - 100;
-	objects[7].Move(objects[1].velocity.x, objects[1].velocity.y - 100);
+	objects[7].velocity.y = objects[1].velocity.y - 200;
+	objects[7].Move(objects[1].velocity.x, objects[1].velocity.y - 200);
 
 	//Добавление текста 
 	Font font;//шрифт 
@@ -266,7 +266,6 @@ void game() {
 				}
 				else if (event.key.code == Keyboard::E) {
 					difrnce = objects[1].velocity.x - objects[4].velocity.x - 100;
-					hit_sound.play();
 					if (objects[1].width == -128 && difrnce <= 20 && j != -10) {
 						hit_sound.play();
 						attack(difrnce, j);
@@ -303,21 +302,19 @@ void game() {
 
 		// коллизия платформы
 		if (objects[5].image.getGlobalBounds().intersects(objects[1].image.getGlobalBounds())) {
-			if (objects[1].velocity.y < objects[5].velocity.y - 112) {
+			if (objects[1].velocity.y < objects[5].velocity.y - 100) {
 				if (mouse && objects[1].image.getGlobalBounds().contains(mouse_position.x, mouse_position.y)) {
 					objects[1].velocity.x = mouse_position.x;
 					objects[1].velocity.y = mouse_position.y;
 				}
-				else {
-					objects[1].velocity.y = objects[5].velocity.y - objects[5].height - 27;
-				}
+				else objects[1].velocity.y = objects[5].velocity.y - objects[5].height - 80;
 			}
 			else {
 				if ((objects[1].velocity.x < objects[5].velocity.x)) {
-					objects[1].velocity.x = objects[5].velocity.x - objects[5].width - 30;
+					objects[1].velocity.x = objects[5].velocity.x - objects[5].width - 10;
 				}
 				if ((objects[1].velocity.x > objects[5].velocity.x)) {
-					objects[1].velocity.x = objects[5].velocity.x + objects[5].width + 30;
+					objects[1].velocity.x = objects[5].velocity.x + objects[5].width + 10;
 				}
 			}
 		}
